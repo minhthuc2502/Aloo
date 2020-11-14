@@ -3,11 +3,12 @@
 mainWindowServer::mainWindowServer() {
     stateServer = new QLabel();
     closeServer = new QPushButton(tr("close"));
-
+    numUserInfo = new QLabel();
     connect(closeServer, SIGNAL(clicked(bool)), this, SLOT(close()));
 
     QVBoxLayout *layout = new QVBoxLayout();
     layout->addWidget(stateServer);
+    layout->addWidget(numUserInfo);
     layout->addWidget(closeServer);
     setLayout(layout);
     setWindowTitle("Aloo");
@@ -20,6 +21,7 @@ mainWindowServer::mainWindowServer() {
         stateServer->setText(tr("The server can't be started because of error: ") + server->errorString());
     } else {
         stateServer->setText(tr("The server is started on port <strong>") + QString::number(server->serverPort()) + tr("</strong>.<br>User can connect to chat"));
+        numUserInfo->setText(tr("0 user in chat group"));
         connect(server, SIGNAL(newConnection()), this, SLOT(newConnect()));
     }
     size = 0;
@@ -32,6 +34,8 @@ void mainWindowServer::newConnect() {
 
     connect(newUser, SIGNAL(disconnected()), this, SLOT(disconnect()));
     connect(newUser, SIGNAL(readyRead()), this, SLOT(receiveData()));
+    // update number of users
+    numUserInfo->setText(QString::number(users.size()) + tr(" users in chat group"));
 }
 
 void mainWindowServer::disconnect() {
@@ -43,6 +47,9 @@ void mainWindowServer::disconnect() {
     }
     users.removeOne(socket);
     socket->deleteLater(); // delete socket after slot finish
+    
+    // update number of users
+    numUserInfo->setText(QString::number(users.size()) + tr(" users in chat group"));
 }
 
 void mainWindowServer::receiveData() {

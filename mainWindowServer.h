@@ -15,6 +15,7 @@ private slots:
     void receiveData();
 private:
     QLabel *stateServer;
+    QLabel *numUserInfo;
     QPushButton *closeServer;
 
     QTcpServer *server;
