@@ -13,6 +13,7 @@ private slots:
     void newConnect();
     void disconnect();
     void receiveData();
+    void receiveInfoFromUsers(QTcpSocket *clientConnection);
 private:
     QLabel *stateServer;
     QLabel *numUserInfo;

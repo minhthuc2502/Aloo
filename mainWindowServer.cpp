@@ -32,6 +32,8 @@ void mainWindowServer::newConnect() {
     QTcpSocket *newUser = server->nextPendingConnection();
     users.append(newUser);
 
+    receiveInfoFromUsers(newUser);
+
     connect(newUser, SIGNAL(disconnected()), this, SLOT(disconnect()));
     connect(newUser, SIGNAL(readyRead()), this, SLOT(receiveData()));
     // update number of users
@@ -92,4 +94,61 @@ void mainWindowServer::sendMessageToUsers(const QString &message) {
     for (int i = 0; i < users.size() ; i++) {
         users[i]->write(msgPackage);
     }
+}
+
+void mainWindowServer::receiveInfoFromUsers(QTcpSocket *clientConnection) {
+    QByteArray array;
+    quint32 sizeImage;
+    QLabel *temp = new QLabel();
+    // wait until get all data from client
+    while (clientConnection->waitForReadyRead(1000)) {
+        array.append(clientConnection->readAll());
+    }
+
+    /* Image processing */
+    QByteArray tempArray;
+    // Get size of image in array
+    tempArray = array.left((int)sizeof(quint32));
+    QDataStream in(&tempArray, QIODevice::ReadOnly);
+    in >> sizeImage;
+
+    // get data of image from array
+    tempArray = array.mid((int)sizeof(quint32), sizeImage);
+    QBuffer buffer(&tempArray);
+    buffer.open(QIODevice::ReadOnly);
+
+    // read image
+    QImageReader reader(&buffer, "JPG");
+    QImage img = reader.read();
+
+    if (!img.isNull()) {
+        temp->setPixmap(QPixmap::fromImage(img));
+        temp->show();
+    }
+    else {
+        qDebug() << "error" << endl;
+    }
+
+    // remove data analyzed
+    array = array.mid((int)sizeof(quint32) + sizeImage, array.size() - ((int)sizeof(quint32) + sizeImage));
+    tempArray = array.left((int)sizeof(quint16));
+    quint16 sizeData;
+    QDataStream inNameLength(&tempArray, QIODevice::ReadOnly);
+    inNameLength >> sizeData;
+    // get name
+    tempArray = array.mid((int)sizeof(quint16), sizeData);
+    QDataStream inName(&tempArray, QIODevice::ReadOnly);
+    QString name;
+    inName >> name;
+
+    // remove data analyzed
+    array = array.mid((int)sizeof(quint16) + sizeData, array.size() - ((int)sizeof(quint16) + sizeData));
+    tempArray = array.left((int)sizeof(quint16));
+    QDataStream inAgeLength(&tempArray, QIODevice::ReadOnly);
+    inAgeLength >> sizeData;
+    // get age
+    tempArray = array.right(sizeData);
+    QDataStream inAge(&tempArray, QIODevice::ReadOnly);
+    int age;
+    inAge >> age;
 }
