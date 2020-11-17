@@ -1,8 +1,10 @@
 QT += widgets network
 
 HEADERS += \
-    mainWindowServer.h
+    mainWindowServer.h \
+    userInfo.h
 
 SOURCES += \
     main.cpp \
-    mainWindowServer.cpp
+    mainWindowServer.cpp \
+    userInfo.cpp

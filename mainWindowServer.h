@@ -3,24 +3,26 @@
 
 #include <QtWidgets>
 #include <QtNetwork>
+#include <userInfo.h>
 
 class mainWindowServer: public QWidget {
     Q_OBJECT
 public:
     mainWindowServer();
     void sendMessageToUsers(const QString &message);
+    void deleteUserInList(QTcpSocket *socket);
 private slots:
     void newConnect();
     void disconnect();
     void receiveData();
-    void receiveInfoFromUsers(QTcpSocket *clientConnection);
+    void receiveInfoFromUsers(userInfo *clientConnection);
 private:
     QLabel *stateServer;
     QLabel *numUserInfo;
     QPushButton *closeServer;
 
     QTcpServer *server;
-    QList<QTcpSocket *> users;
+    QList<userInfo *> users;
     quint16 size;
 };
 
