@@ -25,6 +25,8 @@ mainWindowServer::mainWindowServer() {
         connect(server, SIGNAL(newConnection()), this, SLOT(newConnect()));
     }
     size = 0;
+
+    db = new database();
 }
 
 void mainWindowServer::newConnect() {
@@ -35,7 +37,7 @@ void mainWindowServer::newConnect() {
     user->setSocketId(newUser);
     // get avatar, name, age
     receiveInfoFromUsers(user);
-
+    db->saveUserInfoToDB(user);
     users.append(user);
 
     connect(user->getSocketId(), SIGNAL(disconnected()), this, SLOT(disconnect()));
@@ -88,7 +90,6 @@ void mainWindowServer::receiveData() {
 void mainWindowServer::receiveInfoFromUsers(userInfo *clientConnection) {
     QByteArray array;
     quint32 sizeImage;
-    QLabel *temp = new QLabel();
     // wait until get all data from client
     while (clientConnection->getSocketId()->waitForReadyRead(1000)) {
         array.append(clientConnection->getSocketId()->readAll());
@@ -111,9 +112,7 @@ void mainWindowServer::receiveInfoFromUsers(userInfo *clientConnection) {
     QImage img = reader.read();
 
     if (!img.isNull()) {
-        //clientConnection->setAvatar(QPixmap::fromImage(img));
-        temp->setPixmap(QPixmap::fromImage(img));
-        temp->show();
+        clientConnection->setAvatar(QPixmap::fromImage(img));
     }
     else {
         qDebug() << "error" << endl;
@@ -143,7 +142,6 @@ void mainWindowServer::receiveInfoFromUsers(userInfo *clientConnection) {
     int age;
     inAge >> age;
     clientConnection->setAge(age);
-    qDebug() << "name " << clientConnection->getNickName() << "age " << clientConnection->getAge();
 }
 
 void mainWindowServer::sendMessageToUsers(const QString &message) {
@@ -167,7 +165,6 @@ void mainWindowServer::deleteUserInList(QTcpSocket *socket) {
         userInfo* temp = *i;
         if (temp->getSocketId() == socket) {
             users.removeOne(temp);
-            qDebug() << "deleted user";
             return;
         }
     }

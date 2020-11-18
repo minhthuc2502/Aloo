@@ -3,7 +3,9 @@
 
 #include <QtWidgets>
 #include <QtNetwork>
+#include <QtSql>
 #include <userInfo.h>
+#include <database.h>
 
 class mainWindowServer: public QWidget {
     Q_OBJECT
@@ -24,6 +26,8 @@ private:
     QTcpServer *server;
     QList<userInfo *> users;
     quint16 size;
+
+    database* db;
 };
 
 #endif // MAINWINDOWSERVER_H
