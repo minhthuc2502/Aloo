@@ -1,15 +1,23 @@
 #include "mainWindowServer.h"
 
 mainWindowServer::mainWindowServer() {
+    // database of server
+    db = new database();
+
     stateServer = new QLabel();
     closeServer = new QPushButton(tr("close"));
+    showDB      = new QPushButton(tr("visualize users"));
     numUserInfo = new QLabel();
     connect(closeServer, SIGNAL(clicked(bool)), this, SLOT(close()));
+    connect(showDB, SIGNAL(clicked(bool)), db, SLOT(showDatabase()));
 
     QVBoxLayout *layout = new QVBoxLayout();
     layout->addWidget(stateServer);
     layout->addWidget(numUserInfo);
-    layout->addWidget(closeServer);
+    QHBoxLayout *hbLayout = new QHBoxLayout();
+    hbLayout->addWidget(showDB);
+    hbLayout->addWidget(closeServer);
+    layout->addLayout(hbLayout);
     setLayout(layout);
     setWindowTitle("Aloo");
 
@@ -25,8 +33,6 @@ mainWindowServer::mainWindowServer() {
         connect(server, SIGNAL(newConnection()), this, SLOT(newConnect()));
     }
     size = 0;
-
-    db = new database();
 }
 
 void mainWindowServer::newConnect() {

@@ -22,6 +22,7 @@ private:
     QLabel *stateServer;
     QLabel *numUserInfo;
     QPushButton *closeServer;
+    QPushButton *showDB;
 
     QTcpServer *server;
     QList<userInfo *> users;

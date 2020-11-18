@@ -2,11 +2,15 @@
 #define DATABASE_H
 
 #include <QtSql>
+#include <QWidget>
 #include <userInfo.h>
 
-class database {
+class database : public QWidget {
+    Q_OBJECT
 private:
     QSqlDatabase sqlDB;
+public slots:
+    void showDatabase();
 public:
     database();
     void saveUserInfoToDB(userInfo *clientConnection);

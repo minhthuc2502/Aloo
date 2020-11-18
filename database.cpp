@@ -31,3 +31,22 @@ void database::saveUserInfoToDB(userInfo *clientConnection) {
     sqlDB.close();
 }
 
+void database::showDatabase() {
+    sqlDB.open();
+    QSqlTableModel *dbTableModel = new QSqlTableModel();
+    dbTableModel->setTable("information");
+    dbTableModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
+    dbTableModel->select();
+    int imageId = dbTableModel->fieldIndex("image");
+    dbTableModel->removeColumn(imageId);
+
+    // show data on table view
+    QTableView *view = new QTableView();
+    view->setModel(dbTableModel);
+    QVBoxLayout *layout = new QVBoxLayout();
+    layout->addWidget(view);
+    setLayout(layout);
+    show();
+    sqlDB.close();
+}
+
