@@ -17,7 +17,7 @@ private slots:
     void newConnect();
     void disconnect();
     void receiveData();
-    void receiveInfoFromUsers(userInfo *clientConnection);
+    void receiveInfoFromUsers(QTcpSocket *clientConnection);
 private:
     QLabel *stateServer;
     QLabel *numUserInfo;
@@ -25,9 +25,7 @@ private:
     QPushButton *showDB;
 
     QTcpServer *server;
-    QList<userInfo *> users;
-    quint16 size;
-
+    QMap<QTcpSocket *, userInfo *> users;
     database* db;
 };
 

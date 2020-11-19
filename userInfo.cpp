@@ -3,7 +3,7 @@
 userInfo::userInfo() {
     nickName = "";
     age = 0;
-    idSocket = NULL;
+    sizeMessage = 0;
 }
 
 void userInfo::setNickName(QString name) {
@@ -14,16 +14,12 @@ void userInfo::setAge(int a) {
     age = a;
 }
 
-void userInfo::setSocketId(QTcpSocket *socket) {
-    idSocket = socket;
+void userInfo::setSizeMessage(quint16 size) {
+    sizeMessage = size;
 }
 
 void userInfo::setAvatar(QPixmap ava) {
     avatar = ava;
-}
-
-QTcpSocket* userInfo::getSocketId() {
-    return idSocket;
 }
 
 QString userInfo::getNickName() {
@@ -38,6 +34,6 @@ int userInfo::getAge() {
     return age;
 }
 
-//bool userInfo::operator ==(userInfo &user) {
-//    return (idSocket == user.getSocketId());
-//}
+quint16 userInfo::getSizeMessage() {
+    return sizeMessage;
+}

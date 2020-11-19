@@ -9,20 +9,19 @@ public:
     userInfo();
     void setNickName(QString name);
     void setAge(int a);
-    void setSocketId(QTcpSocket *socket);
     void setAvatar(QPixmap ava);
+    void setSizeMessage(quint16 size);
 
-    QTcpSocket* getSocketId();
     QString getNickName();
     QPixmap getAvatar();
     int getAge();
+    quint16 getSizeMessage();
 
-    //bool operator==(const userInfo &user) const;
 private:
     QString nickName;
     int age;
-    QTcpSocket *idSocket;
     QPixmap avatar;
+    quint16 sizeMessage;
 };
 
 #endif // USERINFO_H

@@ -32,22 +32,19 @@ mainWindowServer::mainWindowServer() {
         numUserInfo->setText(tr("0 user in chat group"));
         connect(server, SIGNAL(newConnection()), this, SLOT(newConnect()));
     }
-    size = 0;
 }
 
 void mainWindowServer::newConnect() {
     sendMessageToUsers(tr("<em> A new person join with us </em>"));
     QTcpSocket *newUser = server->nextPendingConnection();
-    userInfo *user = new userInfo();
-    // get socket id
-    user->setSocketId(newUser);
-    // get avatar, name, age
-    receiveInfoFromUsers(user);
-    db->saveUserInfoToDB(user);
-    users.append(user);
 
-    connect(user->getSocketId(), SIGNAL(disconnected()), this, SLOT(disconnect()));
-    connect(user->getSocketId(), SIGNAL(readyRead()), this, SLOT(receiveData()));
+    // get avatar, name, age
+    receiveInfoFromUsers(newUser);
+    // save to database
+    db->saveUserInfoToDB(users.value(newUser));
+
+    connect(newUser, SIGNAL(disconnected()), this, SLOT(disconnect()));
+    connect(newUser, SIGNAL(readyRead()), this, SLOT(receiveData()));
     // update number of users
     numUserInfo->setText(QString::number(users.size()) + tr(" users in chat group"));
 }
@@ -69,15 +66,18 @@ void mainWindowServer::disconnect() {
 void mainWindowServer::receiveData() {
     // slot is called each time a package of data come in socket
     QTcpSocket *socket = qobject_cast<QTcpSocket *>(sender());
+
     if (socket == 0) {
         return;
     }
+    quint16 size = users.value(socket)->getSizeMessage();
     QDataStream in(socket);
     if (size == 0) {
         if (socket->bytesAvailable() < (int)sizeof(quint16)) {
             return;
         }
         in >> size; // transfer 16 bits for data size to size and change reference in datastream
+        users.value(socket)->setSizeMessage(size);
     }
 
     // when we know data size, check until we have enough data
@@ -90,15 +90,17 @@ void mainWindowServer::receiveData() {
 
     sendMessageToUsers(msg);
     // reset size of data
-    size = 0;
+    users.value(socket)->setSizeMessage(0);
 }
 
-void mainWindowServer::receiveInfoFromUsers(userInfo *clientConnection) {
+void mainWindowServer::receiveInfoFromUsers(QTcpSocket *clientConnection) {
     QByteArray array;
     quint32 sizeImage;
+    userInfo *user = new userInfo();
+
     // wait until get all data from client
-    while (clientConnection->getSocketId()->waitForReadyRead(1000)) {
-        array.append(clientConnection->getSocketId()->readAll());
+    while (clientConnection->waitForReadyRead(1000)) {
+        array.append(clientConnection->readAll());
     }
 
     /* Image processing */
@@ -118,10 +120,7 @@ void mainWindowServer::receiveInfoFromUsers(userInfo *clientConnection) {
     QImage img = reader.read();
 
     if (!img.isNull()) {
-        clientConnection->setAvatar(QPixmap::fromImage(img));
-    }
-    else {
-        qDebug() << "error" << endl;
+        user->setAvatar(QPixmap::fromImage(img));
     }
 
     // remove data analyzed
@@ -135,7 +134,7 @@ void mainWindowServer::receiveInfoFromUsers(userInfo *clientConnection) {
     QDataStream inName(&tempArray, QIODevice::ReadOnly);
     QString name;
     inName >> name;
-    clientConnection->setNickName(name);
+    user->setNickName(name);
 
     // remove data analyzed
     array = array.mid((int)sizeof(quint16) + sizeData, array.size() - ((int)sizeof(quint16) + sizeData));
@@ -147,7 +146,9 @@ void mainWindowServer::receiveInfoFromUsers(userInfo *clientConnection) {
     QDataStream inAge(&tempArray, QIODevice::ReadOnly);
     int age;
     inAge >> age;
-    clientConnection->setAge(age);
+    user->setAge(age);
+
+    users.insert(clientConnection, user);
 }
 
 void mainWindowServer::sendMessageToUsers(const QString &message) {
@@ -160,18 +161,13 @@ void mainWindowServer::sendMessageToUsers(const QString &message) {
     out.device()->seek(0);
     out << (quint16) (msgPackage.size() - sizeof(quint16));
 
-    for (int i = 0; i < users.size() ; i++) {
-        users[i]->getSocketId()->write(msgPackage);
+    for (int i = 0; i < users.keys().size() ; i++) {
+        users.keys()[i]->write(msgPackage);
     }
 }
 
 void mainWindowServer::deleteUserInList(QTcpSocket *socket) {
-    QList<userInfo*>::iterator i;
-    for (i = users.begin(); i != users.end(); i++) {
-        userInfo* temp = *i;
-        if (temp->getSocketId() == socket) {
-            users.removeOne(temp);
-            return;
-        }
+    if (users.contains(socket)) {
+        users.remove(socket);
     }
 }
