@@ -1,6 +1,6 @@
 #include "mainWindowServer.h"
 
-mainWindowServer::mainWindowServer() {
+mainWindowServer::mainWindowServer(QWidget* pParent, Qt::WindowFlags flags) : QWidget(pParent, flags) {
     // database of server
     db = new database();
 
